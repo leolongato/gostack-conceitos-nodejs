@@ -36,17 +36,23 @@ app.post("/repositories", (request, response) => {
 
 app.put("/repositories/:id", (request, response) => {
   const {id} = request.params;
-  const {title, url, techs} = request.body;
+  const {title, url, techs, likes} = request.body;
+  const repositoryIndex = repositories.findIndex(repo => repo.id === id);
 
+  if (likes !== undefined){
+    return response.status(400).json({likes: 0});
+  }
+  
+  if (repositoryIndex < 0) {
+    return response.status(400).json({ error: "Repository not found." });
+  }
+
+  
   if(title.trim() === "" || url.trim() === "" || techs.length === 0 ){
     return response.status(400).json({ error: "Values cannot be null or empty." });
   }
 
-  const repositoryIndex = repositories.findIndex(repo => repo.id === id);
 
-  if (repositories[repositoryIndex] < 0) {
-    return response.status(400).json({ error: "Repository not found." });
-  }
 
   const newRepository = {
     ...repositories[repositoryIndex],
@@ -66,7 +72,7 @@ app.delete("/repositories/:id", (request, response) => {
 
   const repositoryIndex = repositories.findIndex(repo => repo.id === id);
 
-  if (repositories[repositoryIndex] < 0) {
+  if (repositoryIndex < 0) {
     return response.status(400).json({ error: "Repository not found." });
   }
 
@@ -80,9 +86,14 @@ app.post("/repositories/:id/like", (request, response) => {
 
   const repositoryIndex = repositories.findIndex(repo => repo.id === id);
 
-  if (repositories[repositoryIndex] < 0) {
+  if (Object.keys(request.body).length > 0){
+    return response.status(400).json({ error: "Cannot like manually." });
+  }
+
+  if (repositoryIndex < 0) {
     return response.status(400).json({ error: "Repository not found." });
   }
+
 
   const { likes } = repositories[repositoryIndex];
 
@@ -96,6 +107,8 @@ app.post("/repositories/:id/like", (request, response) => {
   repositories[repositoryIndex] = newRepository;
 
   return response.json(newRepository);
+
+
 });
 
 module.exports = app;
